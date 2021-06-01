@@ -18,7 +18,7 @@ public class ProductManager {
 
     private Map<Product, List<Review>> products = new HashMap<>();
     private ResourceFormatter formatter;
-    private ResourceBundle config = ResourceBundle.getBundle("data.config");
+    private ResourceBundle config = ResourceBundle.getBundle("config");
     private MessageFormat reviewFormat = new MessageFormat(config.getString("review.data.format"));
     private MessageFormat productFormat = new MessageFormat(config.getString("product.data.format"));
 
@@ -56,7 +56,7 @@ public class ProductManager {
             Object[] values = reviewFormat.parse(text);
             reviewProduct(Integer.parseInt((String) values[0]), Rateable.convert(Integer.parseInt((String) values[1])), (String) values[2]);
 
-        } catch (ParseException | NumberFormatException e ) {
+        } catch (ParseException | NumberFormatException e) {
             logger.log(Level.WARNING, "Error parsing review " + text, e);
         }
     }
@@ -69,12 +69,11 @@ public class ProductManager {
             BigDecimal price = BigDecimal.valueOf(Double.parseDouble((String) values[3]));
             Rating rating = Rateable.convert(Integer.parseInt((String) values[4]));
             switch ((String) values[0]) {
-                case "D":
-                    createProduct(id, name, price, rating);
-                    break;
-                case "F":
+                case "D" -> createProduct(id, name, price, rating);
+                case "F" -> {
                     LocalDate bestBefore = LocalDate.parse((String) values[5]);
                     createProduct(id, name, price, rating, bestBefore);
+                }
             }
         } catch (ParseException | NumberFormatException | DateTimeException e) {
             logger.log(Level.WARNING, "Error parsing product " + text + " " + e.getMessage());
@@ -116,18 +115,17 @@ public class ProductManager {
                 .stream()
                 .filter(p -> p.getId() == id)
                 .findFirst()
-                .orElseThrow(() -> new ProductManagerException("Product with id "+id+" not found"));
+                .orElseThrow(() -> new ProductManagerException("Product with id " + id + " not found"));
     }
 
     public Map<String, String> getDiscounts() {
         return products.keySet()
                 .stream()
-                .collect(
-                        Collectors.groupingBy(
-                                p -> p.getRating().getStars(),
-                                Collectors.collectingAndThen(
-                                        Collectors.summingDouble(p -> p.getDiscount().doubleValue()),
-                                        d -> formatter.moneyFormat.format(d))));
+                .collect(Collectors.groupingBy(
+                        p -> p.getRating().getStars(),
+                        Collectors.collectingAndThen(
+                                Collectors.summingDouble(p -> p.getDiscount().doubleValue()),
+                                d -> formatter.moneyFormat.format(d))));
     }
 
     public void printProductReport(int id) {
@@ -146,7 +144,7 @@ public class ProductManager {
         txt.append('\n');
         Collections.sort(reviews);
         if (reviews.isEmpty()) {
-            txt.append(formatter.getText("no.reviews") + '\n');
+            txt.append(formatter.getText("no.reviews")).append('\n');
         } else {
             txt.append(reviews.stream()
                     .map(r -> formatter.formatReview(r) + '\n')
@@ -162,7 +160,7 @@ public class ProductManager {
                 .stream()
                 .sorted(sorter)
                 .filter(filter)
-                .forEach(p -> txt.append(formatter.formatProduct(p) + '\n'));
+                .forEach(p -> txt.append(formatter.formatProduct(p)).append('\n'));
         System.out.println(txt);
     }
 
@@ -174,7 +172,7 @@ public class ProductManager {
 
         private ResourceFormatter(Locale locale) {
             this.locale = locale;
-            resources = ResourceBundle.getBundle("data.resources");
+            resources = ResourceBundle.getBundle("resources");
             dateFormat = DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).localizedBy(locale);
             moneyFormat = NumberFormat.getCurrencyInstance(locale);
         }
