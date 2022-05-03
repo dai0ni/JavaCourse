@@ -140,8 +140,7 @@ public class ProductManager {
         List<Review> reviews = products.get(product);
         StringBuilder txt = new StringBuilder();
 
-        txt.append(formatter.formatProduct(product));
-        txt.append('\n');
+        txt.append(formatter.formatProduct(product)).append('\n');
         Collections.sort(reviews);
         if (reviews.isEmpty()) {
             txt.append(formatter.getText("no.reviews")).append('\n');
@@ -172,7 +171,7 @@ public class ProductManager {
 
         private ResourceFormatter(Locale locale) {
             this.locale = locale;
-            resources = ResourceBundle.getBundle("resources");
+            resources = ResourceBundle.getBundle("resources", locale);
             dateFormat = DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).localizedBy(locale);
             moneyFormat = NumberFormat.getCurrencyInstance(locale);
         }
